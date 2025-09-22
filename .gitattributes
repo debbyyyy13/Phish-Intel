@@ -1,0 +1,2 @@
+backend/ml_service/models/tfidf.pkl filter=lfs diff=lfs merge=lfs -text
+backend/venv/Lib/site-packages/xgboost/lib/xgboost.dll filter=lfs diff=lfs merge=lfs -text
