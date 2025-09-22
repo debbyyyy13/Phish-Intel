@@ -144,7 +144,7 @@ npm install react react-dom react-router-dom axios tailwindcss lucide-react rech
 npm install express mongoose cors dotenv jsonwebtoken bcryptjs
 npm install --save-dev nodemon
 
-🧪 Running Locally
+##🧪 Running Locally
 Start backend (npm run dev inside /backend)
 Start frontend (npm run dev inside /frontend-vite)
 Visit http://localhost:5173

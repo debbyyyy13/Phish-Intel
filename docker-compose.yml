@@ -1,0 +1,46 @@
+services:
+  # Backend (Flask API)
+  backend:
+    build: ./backend
+    container_name: phishintel-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - CORS_ORIGINS=http://localhost:5173
+      - DATABASE_URL=sqlite:///phishintel.db  # or replace with Postgres if needed
+      - JWT_SECRET=supersecret
+    volumes:
+      - ./backend:/app
+
+  # Frontend (Vite + Nginx)
+  frontend:
+    build: ./frontend-vite
+    container_name: phishintel-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://backend:5000
+    depends_on:
+      - backend
+
+  # Optional: Postgres (if you switch from SQLite to Postgres)
+  # db:
+  #   image: postgres:15
+  #   container_name: phishintel-db
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER=postgres
+  #     POSTGRES_PASSWORD=postgres
+  #     POSTGRES_DB=phishintel
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - pg-data:/var/lib/postgresql/data
+
+volumes:
+  # mongo-data:   # removed Mongo since not used
+  pg-data:        # uncomment if Postgres is used
+  

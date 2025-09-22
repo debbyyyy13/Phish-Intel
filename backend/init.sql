@@ -1,0 +1,23 @@
+-- init.sql
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS emails (
+    id SERIAL PRIMARY KEY,
+    sender VARCHAR(255),
+    subject TEXT,
+    body TEXT,
+    prediction VARCHAR(20),
+    quarantined BOOLEAN DEFAULT FALSE,
+    received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS quarantine (
+    id SERIAL PRIMARY KEY,
+    email_id INT REFERENCES emails(id) ON DELETE CASCADE,
+    quarantined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

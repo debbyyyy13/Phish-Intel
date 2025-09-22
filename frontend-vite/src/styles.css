@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gradient-to-b from-phishblue-50 to-white text-phishblack;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* small custom styles */
+.btn {
+  @apply px-4 py-2 rounded-md font-medium;
+}
