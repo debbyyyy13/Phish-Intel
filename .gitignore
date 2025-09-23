@@ -36,4 +36,8 @@ Thumbs.db
 .idea/
 
 # ---- Cache ----
+<<<<<<< HEAD
 .cache/
+=======
+.cache/
+>>>>>>> 321c664dd92aac4f0f176e1ae6e57c20226d3b7b
