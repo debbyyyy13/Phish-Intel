@@ -1,0 +1,39 @@
+#---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual enviroments
+venv/
+ENV/
+.env/
+.venv/
+
+# ---- Enviroment files ----
+.env
+.env.*
+!.env.example
+
+# ---- Databases ----
+*.sqlite3
+*.db
+
+# ---- Logs ----
+*.log
+
+# ---- OS Files ----
+.DS_Store
+Thumbs.db
+
+# ---- Docker ----
+*.pid
+*.seed
+*.pid.lock
+
+# ---- IDE ----
+.vscode/
+.idea/
+
+# ---- Cache ----
+.cache/
