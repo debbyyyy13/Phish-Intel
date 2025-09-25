@@ -1,19 +1,24 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   server: {
     proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:5000',
+      "/api": {
+        target: "http://127.0.0.1:5000",
         changeOrigin: true,
         secure: false,
-      }
-    }
+      },
+    },
   },
   build: {
-    // Increase chunk size warning limit (default is 500kb)
-    chunkSizeWarningLimit: 1500, // now 1.5MB
-  }
-})
+    chunkSizeWarningLimit: 1500, // default is 500kb, now 1.5MB
+  },
+});

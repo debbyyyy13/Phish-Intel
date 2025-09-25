@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import Header from "../components/Header"
-import client from "../api"
+import { api } from "../api"   // ✅ fixed import
 
 export default function Quarantine() {
   const [emails, setEmails] = useState([])
@@ -8,7 +8,7 @@ export default function Quarantine() {
   useEffect(() => {
     async function fetchQuarantine() {
       try {
-        const res = await client.get("/api/v1/quarantine")
+        const res = await api.get("/api/v1/quarantine")  // ✅ use api
         setEmails(res.data || [])
       } catch (err) {
         console.error("Failed to fetch quarantine data:", err)

@@ -11,5 +11,5 @@ class Config:
 
     # JWT Configuration for Authentication (if using)
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-super-secret-key'
-    JWT_ACCESS_TOKEN_EXPIRES = 3600 # 1 hour
+    JWT_ACCESS_TOKEN_EXPIRES = 900 # 15 minutes
     # Add other configurations as needed (e.g., email server, logging)
