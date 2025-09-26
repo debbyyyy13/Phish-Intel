@@ -54,14 +54,7 @@ export default function Landing() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <header className="flex items-center justify-between mb-16">
-          <div className="flex items-center gap-2">
-            <Shield className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="text-xl font-semibold">PhishGuard</h1>
-              <p className="text-sm text-muted-foreground">Security Platform</p>
-            </div>
-          </div>
+         <header className="flex items-center justify-end mb-16">
           <Button onClick={handleLogin} data-testid="button-login">
             Sign In
             <ArrowRight className="w-4 h-4 ml-2" />
