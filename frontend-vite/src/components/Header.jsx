@@ -1,84 +1,89 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+// src/components/Header.jsx
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Shield, LogOut, User } from 'lucide-react';
 
-export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false)
+const Header = () => {
+  const { user, logout, isAuthenticated } = useAuth();
+  const location = useLocation();
+  
+  // Don't show header on login/signup pages
+  if (['/login', '/signup'].includes(location.pathname)) {
+    return null;
+  }
 
   return (
-    <header className="bg-[#07143a] text-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          
+    <header className="bg-white shadow-sm border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <img
-              src="/phishintel-logo.png"
-              alt="PhishIntel"
-              className="w-10 h-10 object-contain"
-            />
-            <span className="font-semibold text-lg">PhishIntel</span>
-          </div>
+          <Link to="/" className="flex items-center space-x-3">
+            <Shield className="w-8 h-8 text-blue-600" />
+            <h1 className="text-xl font-bold text-gray-900">PhishGuard</h1>
+          </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link to="/" className="hover:text-blue-400">Dashboard</Link>
-            <Link to="/quarantine" className="hover:text-blue-400">Quarantine</Link>
-            <Link to="/reports" className="hover:text-blue-400">Reports</Link>
-            <Link to="/settings" className="hover:text-blue-400">Settings</Link>
-          </nav>
-
-          {/* Right section: profile */}
-          <div className="hidden md:flex items-center gap-4">
-            <div className="relative group">
-              <button className="w-9 h-9 rounded-full bg-white text-[#07143a] font-bold flex items-center justify-center">
-                D
-              </button>
-              <div className="absolute right-0 mt-2 w-40 bg-white text-[#07143a] rounded-lg shadow-lg hidden group-hover:block">
-                <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">Profile</Link>
-                <button className="w-full text-left px-4 py-2 hover:bg-gray-100">Logout</button>
+          {/* Navigation */}
+          {isAuthenticated ? (
+            <div className="flex items-center space-x-4">
+              <nav className="hidden md:flex space-x-6">
+                <Link 
+                  to="/dashboard" 
+                  className="text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  Dashboard
+                </Link>
+                <Link 
+                  to="/submit" 
+                  className="text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  Submit Email
+                </Link>
+                <Link 
+                  to="/quarantine" 
+                  className="text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  Quarantine
+                </Link>
+              </nav>
+              
+              {/* User Menu */}
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <User className="w-5 h-5 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">
+                    {user?.name || user?.email}
+                  </span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="flex items-center space-x-1 text-gray-600 hover:text-red-600 font-medium"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
               </div>
             </div>
-          </div>
-
-          {/* Mobile Hamburger */}
-          <div className="md:hidden">
-            <button
-              aria-label="Open menu"
-              className="p-2"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link 
+                to="/login" 
+                className="text-gray-600 hover:text-gray-900 font-medium"
               >
-                <path
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
-          </div>
+                Login
+              </Link>
+              <Link 
+                to="/signup" 
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-[#07143a] px-4 py-2 space-y-2">
-          <Link to="/" className="block hover:text-blue-400">Dashboard</Link>
-          <Link to="/quarantine" className="block hover:text-blue-400">Quarantine</Link>
-          <Link to="/reports" className="block hover:text-blue-400">Reports</Link>
-          <Link to="/settings" className="block hover:text-blue-400">Settings</Link>
-          <button className="block text-left w-full hover:text-blue-400">Logout</button>
-        </div>
-      )}
-      
-      {/* Divider */}
-      <div className="h-0.5 bg-white/10"></div>
     </header>
-  )
-}
+  );
+};
+
+export default Header;

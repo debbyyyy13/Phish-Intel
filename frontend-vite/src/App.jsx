@@ -1,5 +1,7 @@
+// src/App.jsx - FIXED VERSION (Remove Router from here if it exists elsewhere)
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom"; // ✅ No BrowserRouter import
+import { AuthProvider } from "./contexts/AuthContext";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -7,26 +9,26 @@ import SubmitEmail from "./pages/SubmitEmail";
 import Quarantine from "./pages/Quarantine";
 import Signup from "./pages/Signup";
 
-export default function App() {
+// Simple Protected Route Component
+const ProtectedRoute = ({ children }) => {
   const token = sessionStorage.getItem("phish_token");
+  return token ? children : <Navigate to="/login" replace />;
+};
 
-  const PrivateRoute = ({ children }) => {
-    return token ? children : <Navigate to="/login" replace />;
-  };
-
+export default function App() {
   return (
-    <>
-      {/* Logo header */}
+    <AuthProvider>
+      {/* Logo header - you can keep this or move to a Header component */}
       <div className="flex items-center justify-center py-4 bg-gray-100 shadow-md">
         <img
           src="/phishintel-logo.png"
-          alt="PhishIntel Logo"
+          alt="PhishGuard Logo"
           className="w-16 h-16 mr-3"
         />
-        <h1 className="text-2xl font-bold text-blue-600">PhishIntel</h1>
+        <h1 className="text-2xl font-bold text-blue-600">PhishGuard</h1>
       </div>
 
-      {/* Routes */}
+      {/* Routes - NO Router wrapper here */}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
@@ -34,29 +36,29 @@ export default function App() {
         <Route
           path="/dashboard"
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <Dashboard />
-            </PrivateRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/submit"
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <SubmitEmail />
-            </PrivateRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/quarantine"
           element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <Quarantine />
-            </PrivateRoute>
+            </ProtectedRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </>
+    </AuthProvider>
   );
 }
