@@ -2,6 +2,9 @@ from datetime import datetime
 from enum import Enum
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
+from backend import db
+import backend.models  # ensures all models are registered
 
 db = SQLAlchemy()
 
@@ -14,10 +17,12 @@ class ThreatLevel(str, Enum):
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
 
+
 class EmailStatus(str, Enum):
     PROCESSED = "PROCESSED"
     QUARANTINED = "QUARANTINED"
     RELEASED = "RELEASED"
+
 
 # ----------------------------
 # User Model
@@ -38,12 +43,13 @@ class User(db.Model):
     role = db.Column(db.String(20), default="user")       # user, admin, analyst
     is_verified = db.Column(db.Boolean, default=False)
 
-    preferences = db.Column(db.JSON, default={
+    # JSON fields — safer defaults (lambda to avoid mutable shared state)
+    preferences = db.Column(db.JSON, default=lambda: {
         "notifications": True,
         "theme": "light",
         "language": "en"
     })
-    settings = db.Column(db.JSON, default={})
+    settings = db.Column(db.JSON, default=dict)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -65,6 +71,7 @@ class User(db.Model):
     def __repr__(self):
         return f"<User {self.email}>"
 
+
 # ----------------------------
 # Config Model
 # ----------------------------
@@ -82,6 +89,7 @@ class Config(db.Model):
     def __repr__(self):
         return f"<Config {self.type} v{self.version}>"
 
+
 # ----------------------------
 # Email Model
 # ----------------------------
@@ -95,22 +103,23 @@ class Email(db.Model):
     recipient = db.Column(db.String(255))
     subject = db.Column(db.String(500))
     body = db.Column(db.Text)
-    headers = db.Column(db.JSON, default={})
+    headers = db.Column(db.JSON, default=dict)
 
     prediction = db.Column(db.String(50))
     confidence_score = db.Column(db.Float)
     threat_level = db.Column(db.String(20))
     status = db.Column(db.String(20))
-    extracted_features = db.Column(db.JSON, default={})
+    extracted_features = db.Column(db.JSON, default=dict)
     model_version = db.Column(db.String(50))
     processing_time_ms = db.Column(db.Integer)
-    urls_found = db.Column(db.JSON, default=[])
+    urls_found = db.Column(db.JSON, default=list)
 
     processed_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
         return f"<Email {self.subject[:20]}...>"
+
 
 # ----------------------------
 # Quarantine Model
@@ -125,10 +134,10 @@ class Quarantine(db.Model):
     recipient = db.Column(db.String(255))
     subject = db.Column(db.String(500))
     body = db.Column(db.Text)
-    headers = db.Column(db.JSON, default={})
+    headers = db.Column(db.JSON, default=dict)
 
     reason = db.Column(db.Text)
-    threat_indicators = db.Column(db.JSON, default=[])
+    threat_indicators = db.Column(db.JSON, default=list)
     prediction = db.Column(db.String(50))
     confidence_score = db.Column(db.Float)
     threat_level = db.Column(db.String(20))
@@ -142,6 +151,7 @@ class Quarantine(db.Model):
     def __repr__(self):
         return f"<Quarantine {self.subject[:20]}...>"
 
+
 # ----------------------------
 # User Analytics Model
 # ----------------------------
@@ -151,7 +161,9 @@ class UserAnalytics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
-    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date)
+    # FIX: Use server_default to avoid import-time evaluation
+    date = db.Column(db.Date, nullable=False, server_default=func.current_date())
+
     emails_processed = db.Column(db.Integer, default=0)
     emails_quarantined = db.Column(db.Integer, default=0)
     phishing_detected = db.Column(db.Integer, default=0)

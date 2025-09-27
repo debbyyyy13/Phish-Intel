@@ -1,17 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 import {
   Shield,
   Brain,
-  Users,
   BarChart3,
   ArrowRight,
   CheckCircle,
 } from "lucide-react";
 
 export default function Landing() {
-  const handleLogin = () => {
-    window.location.href = "/api/login";
+  const navigate = useNavigate();
+
+  const handleSignup = () => {
+    navigate("/signup");
   };
 
   const features = [
@@ -23,74 +25,65 @@ export default function Landing() {
     },
     {
       icon: <Brain className="w-8 h-8 text-primary" />,
-      title: "Intelligent Training",
+      title: "Smart Analysis",
       description:
-        "Personalized security awareness training that adapts to your organization's threat landscape.",
+        "Advanced AI analyzes email content, links, and attachments to detect sophisticated phishing attempts.",
     },
     {
-      icon: <Users className="w-8 h-8 text-primary" />,
-      title: "Enterprise Management",
+      icon: <Shield className="w-8 h-8 text-primary" />,
+      title: "Real-time Protection",
       description:
-        "Comprehensive admin tools for managing users, policies, and organization-wide security metrics.",
+        "Get instant alerts and protection against the latest phishing threats with continuous updates.",
     },
     {
       icon: <BarChart3 className="w-8 h-8 text-primary" />,
-      title: "Advanced Analytics",
+      title: "Personal Dashboard",
       description:
-        "Deep insights into threat patterns, user behavior, and security effectiveness across your organization.",
+        "Track your security insights, view threat history, and monitor your email safety metrics.",
     },
   ];
 
   const benefits = [
     "Block 99% of phishing attempts with AI detection",
-    "Reduce security incidents by 85% through training",
-    "Get real-time threat intelligence and alerts",
-    "Comprehensive compliance reporting and analytics",
-    "Enterprise-grade security with zero-trust architecture",
-    "24/7 automated monitoring and incident response",
+    "Real-time scanning of emails, links, and attachments",
+    "Personal threat intelligence and security insights",
+    "Easy-to-use interface for daily email protection",
+    "Detailed analysis reports for every email scanned",
+    "24/7 automated monitoring and instant alerts",
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-         <header className="flex items-center justify-end mb-16">
-          <Button onClick={handleLogin} data-testid="button-login">
-            Sign In
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </header>
-
         {/* Hero Section */}
-        <div className="text-center mb-20">
+        <div className="text-center mb-20 pt-16">
           <div className="max-w-3xl mx-auto space-y-6">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-              Advanced Phishing
+              Personal Phishing
               <br />
-              <span className="text-primary">Detection & Training</span>
+              <span className="text-primary">Detection & Protection</span>
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              Protect your organization with AI-powered phishing detection,
-              comprehensive user training, and enterprise-grade security
-              analytics. Built for modern businesses.
+              Protect yourself with AI-powered phishing detection. Scan suspicious emails,
+              get instant threat analysis, and stay safe from cyber attacks.
+              Built for individuals who value their security.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            {/* Single centered Get Started button */}
+            <div className="flex justify-center pt-8">
               <Button
                 size="lg"
-                onClick={handleLogin}
+                onClick={handleSignup}
+                className="px-8 py-4 text-lg font-semibold"
                 data-testid="button-get-started"
               >
                 Get Started
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              <Button size="lg" variant="outline" data-testid="button-learn-more">
-                Learn More
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Features Grid */}
+        {/* Features Grid - 4 Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
           {features.map((feature, index) => (
             <Card key={index} className="text-center hover-elevate">
@@ -113,8 +106,7 @@ export default function Landing() {
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Why Choose PhishGuard?</CardTitle>
               <CardDescription>
-                Comprehensive security solution trusted by enterprise
-                organizations worldwide
+                Personal security solution trusted by individuals worldwide
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -135,17 +127,16 @@ export default function Landing() {
           <Card className="max-w-2xl mx-auto">
             <CardHeader>
               <CardTitle className="text-2xl">
-                Ready to Secure Your Organization?
+                Ready to Secure Your Email?
               </CardTitle>
               <CardDescription>
-                Join thousands of companies protecting their employees with
-                PhishGuard
+                Join thousands of users protecting themselves with PhishGuard
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
               <Button
                 size="lg"
-                onClick={handleLogin}
+                onClick={handleSignup}
                 className="w-full sm:w-auto"
                 data-testid="button-start-protection"
               >

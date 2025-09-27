@@ -1,19 +1,26 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from config import Config
-from models import db
-from routes.users import users_bp
-from routes.emails import emails_bp
-from routes.auth import auth_bp   # new
+from flask_migrate import Migrate
+
+from backend.config import Config
+from backend import db
+from backend.routes.users import users_bp
+from backend.routes.emails import emails_bp
+from backend.routes.auth import auth_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
+print("📌 Using database:", app.config["SQLALCHEMY_DATABASE_URI"])
 
 # Initialize extensions
 db.init_app(app)
-CORS(app)
-jwt = JWTManager(app)  # <-- this goes AFTER app = Flask(__name__)
+migrate = Migrate(app, db)
+
+# Restrict CORS only to your frontend
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+
+jwt = JWTManager(app)
 
 # Register blueprints
 app.register_blueprint(users_bp)

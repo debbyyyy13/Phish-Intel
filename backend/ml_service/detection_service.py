@@ -18,8 +18,8 @@ from urllib.parse import urlparse
 import requests
 from collections import Counter
 
-from config import Config
-from models import (
+from backend.config import Config
+from backend.models import (
     db, Email, Quarantine, User, UserAnalytics, 
     ThreatLevel, EmailStatus
 )

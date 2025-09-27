@@ -492,3 +492,11 @@
   --primary-saturation: 83%;
   --primary-lightness: 53%;
 }
+/* Custom css for extra large icon */
+.w-168 {
+  width: 672px !important;
+}
+
+.h-168 {
+  height: 672px !important;
+}

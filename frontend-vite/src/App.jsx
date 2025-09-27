@@ -1,7 +1,8 @@
-// src/App.jsx - FIXED VERSION (Remove Router from here if it exists elsewhere)
+// src/App.jsx - Fixed Version
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom"; // ✅ No BrowserRouter import
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import Header from "./components/Header";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -18,17 +19,10 @@ const ProtectedRoute = ({ children }) => {
 export default function App() {
   return (
     <AuthProvider>
-      {/* Logo header - you can keep this or move to a Header component */}
-      <div className="flex items-center justify-center py-4 bg-gray-100 shadow-md">
-        <img
-          src="/phishintel-logo.png"
-          alt="PhishGuard Logo"
-          className="w-16 h-16 mr-3"
-        />
-        <h1 className="text-2xl font-bold text-blue-600">PhishGuard</h1>
-      </div>
+      {/* Global Header - will conditionally show based on route */}
+      <Header />
 
-      {/* Routes - NO Router wrapper here */}
+      {/* Routes */}
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />

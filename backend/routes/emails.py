@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from models import db, Email, Quarantine
-from ml_service.detection_service import classify_emails, release_from_quarantine
+from backend.models import db, Email, Quarantine
+from backend.ml_service.detection_service import classify_emails, release_from_quarantine
 
 emails_bp = Blueprint("emails", __name__)
 
