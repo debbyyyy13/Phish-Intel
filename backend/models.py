@@ -3,9 +3,8 @@ from enum import Enum
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
-from backend import db
-import backend.models  # ensures all models are registered
 
+# Create single db instance - DO NOT import from backend
 db = SQLAlchemy()
 
 # ----------------------------
@@ -35,15 +34,15 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
 
     # Password (hashed) or Google OAuth
-    password_hash = db.Column(db.String(128), nullable=True)
+    password_hash = db.Column(db.String(255), nullable=True)  # Increased from 128
     google_id = db.Column(db.String(255), unique=True, nullable=True)
 
     avatar = db.Column(db.String(255))
-    provider = db.Column(db.String(20), default="local")  # local or google
-    role = db.Column(db.String(20), default="user")       # user, admin, analyst
+    provider = db.Column(db.String(20), default="local")
+    role = db.Column(db.String(20), default="user")
     is_verified = db.Column(db.Boolean, default=False)
 
-    # JSON fields — safer defaults (lambda to avoid mutable shared state)
+    # JSON fields
     preferences = db.Column(db.JSON, default=lambda: {
         "notifications": True,
         "theme": "light",
@@ -55,18 +54,32 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    emails = db.relationship("Email", backref="user", lazy=True)
-    quarantines = db.relationship("Quarantine", backref="user", lazy=True)
-    analytics = db.relationship("UserAnalytics", backref="user", lazy=True)
+    emails = db.relationship("Email", backref="user", lazy=True, cascade="all, delete-orphan")
+    quarantines = db.relationship("Quarantine", backref="user", lazy=True, cascade="all, delete-orphan")
+    analytics = db.relationship("UserAnalytics", backref="user", lazy=True, cascade="all, delete-orphan")
 
-    # ---- Methods ----
+    # Methods
     def set_password(self, password):
         """Hash and set the password."""
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
     def check_password(self, password):
         """Verify password against stored hash."""
+        if not self.password_hash:
+            return False
         return check_password_hash(self.password_hash, password)
+
+    def to_dict(self):
+        """Convert user to dictionary."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "role": self.role,
+            "is_verified": self.is_verified,
+            "provider": self.provider,
+            "created_at": self.created_at.isoformat() if self.created_at else None
+        }
 
     def __repr__(self):
         return f"<User {self.email}>"
@@ -160,8 +173,6 @@ class UserAnalytics(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-
-    # FIX: Use server_default to avoid import-time evaluation
     date = db.Column(db.Date, nullable=False, server_default=func.current_date())
 
     emails_processed = db.Column(db.Integer, default=0)

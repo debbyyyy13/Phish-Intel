@@ -6,74 +6,132 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
 
 @auth_bp.route("/signup", methods=["POST"])
 def signup():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
 
-    name = data.get("name")
-    email = data.get("email")
-    password = data.get("password")
-    confirm_password = data.get("confirm_password")
+        # Extract fields - simple version without strip/lower
+        name = data.get("name")
+        email = data.get("email")
+        password = data.get("password")
+        confirm_password = data.get("confirm_password")
 
-    if not name or not email or not password:
-        return jsonify({"error": "Name, email, and password are required"}), 400
+        # Validation
+        if not name or not email or not password:
+            return jsonify({"error": "Name, email, and password are required"}), 400
 
-    if password != confirm_password:
-        return jsonify({"error": "Passwords do not match"}), 400
+        if password != confirm_password:
+            return jsonify({"error": "Passwords do not match"}), 400
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({"error": "Email already registered"}), 400
+        # Clean email (only if it's a string)
+        if isinstance(email, str):
+            email = email.strip().lower()
+        
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({"error": "Email already registered"}), 400
 
-    user = User(name=name, email=email)
-    user.set_password(password)
+        # Create new user
+        user = User(name=name, email=email)
+        user.set_password(password)
 
-    db.session.add(user)
-    db.session.commit()
+        db.session.add(user)
+        db.session.commit()
 
-    access_token = create_access_token(identity=user.id)
+        # Create access token
+        access_token = create_access_token(identity=user.id)
 
-    return jsonify({
-        "access_token": access_token,
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "role": user.role,
-            "is_verified": user.is_verified
-        }
-    }), 201
+        return jsonify({
+            "access_token": access_token,
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "role": user.role,
+                "is_verified": user.is_verified
+            }
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Signup error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Signup failed", "details": str(e)}), 500
 
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
-    email = data.get("email")
-    password = data.get("password")
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        email = data.get("email")
+        password = data.get("password")
 
-    user = User.query.filter_by(email=email).first()
-    if not user or not user.check_password(password):
-        return jsonify({"error": "Invalid credentials"}), 401
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+        
+        # Clean email
+        if isinstance(email, str):
+            email = email.strip().lower()
 
-    access_token = create_access_token(identity=user.id)
+        # Find user
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            print(f"❌ User not found: {email}")
+            return jsonify({"error": "Invalid credentials"}), 401
+        
+        # Check password
+        if not user.check_password(password):
+            print(f"❌ Invalid password for user: {email}")
+            return jsonify({"error": "Invalid credentials"}), 401
 
-    return jsonify({
-        "access_token": access_token,
-        "user": {
-            "id": user.id,
-            "email": user.email,
-            "name": user.name,
-            "role": user.role,
-        }
-    }), 200
+        # Create access token
+        access_token = create_access_token(identity=user.id)
+
+        print(f"✅ Login successful for: {email}")
+        
+        return jsonify({
+            "access_token": access_token,
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "name": user.name,
+                "role": user.role,
+            }
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Login error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Login failed", "details": str(e)}), 500
 
 
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
 def me():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    return jsonify({
-        "id": user.id,
-        "email": user.email,
-        "name": user.name,
-        "role": user.role,
-        "is_verified": user.is_verified
-    })
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        return jsonify({
+            "id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "role": user.role,
+            "is_verified": user.is_verified
+        })
+    except Exception as e:
+        print(f"❌ /me error: {e}")
+        return jsonify({"error": "Failed to get user info"}), 500

@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }) => {
   // 🔹 Login
   const login = async (email, password) => {
     try {
+      setLoading(true);
       const response = await api.post("/auth/login", { email, password });
       const { access_token, user: userData } = response.data;
 
@@ -48,29 +49,34 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
+      console.error("Login error:", error);
       return {
         success: false,
-        error: error.response?.data?.error || "Login failed",
+        error: error.response?.data?.error || error.message || "Login failed",
       };
+    } finally {
+      setLoading(false);
     }
   };
 
   // 🔹 Login with Google
   const loginWithGoogle = () => {
     window.location.href = `${
-      import.meta.env.VITE_API_URL || "http://localhost:5000"
-    }/api/v1/auth/google`;
+      import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1"
+    }/auth/google`;
   };
 
   // 🔹 Signup (fixed mapping for Flask)
   const signup = async (formData) => {
     try {
-      // Ensure payload matches Flask backend (snake_case keys)
+      setLoading(true);
+      
+      // Ensure payload matches Flask backend
       const payload = {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        confirm_password: formData.confirm_password,
+        confirm_password: formData.confirmPassword || formData.password, // Handle both cases
       };
 
       console.log("Signup payload sent to backend:", payload);
@@ -84,12 +90,27 @@ export const AuthProvider = ({ children }) => {
       api.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
       setUser(newUser);
 
-      return { success: true };
+      return { success: true, user: newUser };
     } catch (error) {
+      console.error("Signup error:", error);
+      
+      // Better error handling
+      let errorMessage = "Signup failed";
+      
+      if (error.code === 'ERR_NETWORK') {
+        errorMessage = "Cannot connect to server. Please ensure the backend is running.";
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       return {
         success: false,
-        error: error.response?.data?.error || "Signup failed",
+        error: errorMessage,
       };
+    } finally {
+      setLoading(false);
     }
   };
 
