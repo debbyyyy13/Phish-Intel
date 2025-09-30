@@ -1,3 +1,4 @@
+// src/components/ThemeAwareLogo.jsx
 import React, { useState, useEffect } from 'react';
 import { Shield } from 'lucide-react';
 
@@ -64,8 +65,8 @@ const ThemeAwareLogo = ({ className = "w-42 h-42", style = {} }) => {
     : "/phishguard-logo(light).png";   // Light mode page uses light mode logo
 
   const mergedStyle = {
-    width: '672px',    // 4x larger (168px * 4)
-    height: '672px',   // 4x larger (168px * 4)
+    width: '80px',    // Reduced from 672px
+    height: '80px',   // Reduced from 672px
     ...style
   };
 
