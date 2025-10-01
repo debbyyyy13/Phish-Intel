@@ -1,47 +1,68 @@
+// src/api/index.js - Fixed API Configuration
 import axios from 'axios';
 
-const api = axios.create({
-  // Fixed: Use port 8000 to match your Flask backend
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
-  timeout: 10000,
+// Base API URL - adjust based on your environment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
+// Create axios instance
+export const api = axios.create({
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
+  timeout: 10000, // 10 seconds
 });
 
-// Request interceptor
+// Request interceptor - add auth token
 api.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem('phish_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
+    
+    console.log('🚀 API Request:', {
+      method: config.method,
+      url: config.url,
+      baseURL: config.baseURL,
+      fullURL: `${config.baseURL}${config.url}`,
+    });
+    
     return config;
   },
   (error) => {
-    console.error('API Request Error:', error);
+    console.error('❌ Request Error:', error);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor
+// Response interceptor - handle errors
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.data);
+    console.log('✅ API Response:', {
+      status: response.status,
+      url: response.config.url,
+      data: response.data,
+    });
     return response;
   },
   (error) => {
-    console.error('API Response Error:', error.response?.status, error.response?.data);
-    
+    console.error('❌ API Error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data,
+    });
+
+    // Handle 401 Unauthorized - redirect to login
     if (error.response?.status === 401) {
-      // Token expired or invalid
       sessionStorage.removeItem('phish_token');
       sessionStorage.removeItem('phish_user');
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );
 
-export { api };
+export default api;
