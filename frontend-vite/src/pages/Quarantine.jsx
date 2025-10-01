@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react"
-import Header from "../components/Header"
 import { api } from "../api"
 
 export default function Quarantine() {
@@ -31,7 +30,7 @@ export default function Quarantine() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        {/* NO HEADER - It's in App.jsx */}
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -47,7 +46,7 @@ export default function Quarantine() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        {/* NO HEADER */}
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <h3 className="text-red-800 font-semibold mb-2">Error Loading Quarantine</h3>
@@ -60,8 +59,7 @@ export default function Quarantine() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Global Header */}
-      <Header />
+      {/* NO HEADER - Global Header is in App.jsx */}
 
       {/* Page Title */}
       <div className="max-w-7xl mx-auto px-4 py-6">

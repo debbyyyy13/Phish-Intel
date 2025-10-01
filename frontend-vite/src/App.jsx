@@ -1,4 +1,4 @@
-// src/App.jsx - Fixed Version
+// src/App.jsx - Updated with Extension Route
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Extension from "./pages/Extension";
 import SubmitEmail from "./pages/SubmitEmail";
 import Quarantine from "./pages/Quarantine";
 import Signup from "./pages/Signup";
@@ -32,6 +33,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/extension"
+          element={
+            <ProtectedRoute>
+              <Extension />
             </ProtectedRoute>
           }
         />

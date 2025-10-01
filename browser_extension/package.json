@@ -1,0 +1,14 @@
+{
+  "name": "email-security-scanner",
+  "version": "1.0.0",
+  "description": "AI-powered email threat detection browser extension",
+  "scripts": {
+    "build": "node build.js",
+    "package": "zip -r extension.zip dist/",
+    "dev": "node watch.js"
+  },
+  "devDependencies": {
+    "archiver": "^6.0.0",
+    "fs-extra": "^11.1.1"
+  }
+}

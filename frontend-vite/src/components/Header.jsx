@@ -90,6 +90,12 @@ const Header = () => {
                     Dashboard
                   </Link>
                   <Link 
+                    to="/extension" 
+                    className="text-gray-600 hover:text-gray-900 font-medium text-lg transition-colors"
+                  >
+                    Extension
+                  </Link>
+                  <Link 
                     to="/submit" 
                     className="text-gray-600 hover:text-gray-900 font-medium text-lg transition-colors"
                   >
