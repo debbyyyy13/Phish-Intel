@@ -185,3 +185,17 @@ class UserAnalytics(db.Model):
 
     def __repr__(self):
         return f"<UserAnalytics user_id={self.user_id} date={self.date}>"
+# ----------------------------
+# Training Log (for retraining)
+# ----------------------------
+class TrainingEmail(db.Model):
+    __tablename__ = "training_emails"
+
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text, nullable=False)
+    label = db.Column(db.Integer, nullable=False)  # 1 = phishing, 0 = legit
+    source = db.Column(db.String(50), default="user_feedback")  # csv, realtime, feedback
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<TrainingEmail id={self.id} label={self.label}>"
