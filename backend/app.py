@@ -71,6 +71,23 @@ def create_app():
     def health():
         return {"status":"ok","models_loaded": model_text is not None, "time": datetime.utcnow().isoformat()}
 
+    # ✅ ADD DASHBOARD ROUTE (INSIDE create_app function)
+    @app.route("/api/v1/dashboard", methods=['GET'])
+    def dashboard():
+        return jsonify({
+            'total_reports': 150,
+            'active_users': 25,
+            'threats_detected': 45,
+            'safe_emails': 105,
+            'last_scan': datetime.utcnow().isoformat()
+        }), 200
+
+    # ✅ ADD QUARANTINE ROUTE (INSIDE create_app function)
+    @app.route("/api/v1/quarantine", methods=['GET'])
+    def get_quarantine():
+        return jsonify([]), 200
+
+    # ✅ This stays inside create_app
     with app.app_context():
         db.create_all()
         schedule_retrain(app)

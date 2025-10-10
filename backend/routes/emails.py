@@ -96,6 +96,19 @@ def release(q_id):
         print(f"Release error: {e}")
         return jsonify({"error": "Failed to release email"}), 500
 
+@emails_bp.route('/quarantine', methods=['GET'])
+@jwt_required()
+def get_quarantine():
+    user_id = get_jwt_identity()
+    # Get quarantined emails from database
+    emails = Email.query.filter_by(
+        user_id=user_id, 
+        is_quarantined=True
+    ).order_by(Email.created_at.desc()).all()
+    
+    return jsonify({
+        'emails': [email.to_dict() for email in emails]
+    }), 200
 
 @emails_bp.route("/quarantine/<int:q_id>", methods=["DELETE"])
 @jwt_required()

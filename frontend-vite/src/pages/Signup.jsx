@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''  // ✅ Changed from confirm_password
+    confirmPassword: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   
   const { signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
 
     // Validate all fields are filled
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
@@ -51,8 +53,18 @@ const Signup = () => {
     const result = await signup(formData);
     
     if (result.success) {
-      console.log('✅ Signup successful, navigating to dashboard');
-      navigate('/dashboard');
+      console.log('✅ Signup successful');
+      setSuccess(true);
+      
+      // Show success message for 2 seconds, then redirect to login
+      setTimeout(() => {
+        navigate('/login', { 
+          state: { 
+            message: 'Account created successfully! Please log in.',
+            email: formData.email 
+          } 
+        });
+      }, 2000);
     } else {
       console.log('❌ Signup failed:', result.error);
       setError(result.error || 'Signup failed. Please try again.');
@@ -72,15 +84,27 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4 transition-colors">
+      <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 transition-colors">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
-          <p className="text-gray-600 mt-2">Join PhishGuard today</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Create Account</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Join PhishGuard today</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        {/* Success Message */}
+        {success && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg mb-6 flex items-center space-x-2">
+            <CheckCircle className="w-5 h-5" />
+            <div>
+              <p className="font-semibold">Account created successfully!</p>
+              <p className="text-sm">Redirecting to login page...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && !success && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
             <p className="text-sm">{error}</p>
           </div>
         )}
@@ -88,68 +112,68 @@ const Signup = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name Field */}
           <div className="relative">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Full Name
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <User className="absolute left-3 top-3 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 id="name"
                 name="name"
                 placeholder="John Doe"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                disabled={loading}
+                disabled={loading || success}
               />
             </div>
           </div>
 
           {/* Email Field */}
           <div className="relative">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="email"
                 id="email"
                 name="email"
                 placeholder="john@example.com"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 value={formData.email}
                 onChange={handleChange}
                 required
-                disabled={loading}
+                disabled={loading || success}
               />
             </div>
           </div>
 
           {/* Password Field */}
           <div className="relative">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 name="password"
                 placeholder="••••••••"
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 value={formData.password}
                 onChange={handleChange}
                 required
-                disabled={loading}
+                disabled={loading || success}
                 minLength={6}
               />
               <button
                 type="button"
-                className="absolute right-3 top-3 h-5 w-5 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-3 h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff /> : <Eye />}
@@ -159,21 +183,21 @@ const Signup = () => {
 
           {/* Confirm Password Field */}
           <div className="relative">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Confirm Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="password"
                 id="confirmPassword"
                 name="confirmPassword"
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
-                disabled={loading}
+                disabled={loading || success}
               />
             </div>
           </div>
@@ -181,10 +205,10 @@ const Signup = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || success}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Creating account...' : 'Create Account'}
+            {loading ? 'Creating account...' : success ? 'Success! Redirecting...' : 'Create Account'}
           </button>
         </form>
 
@@ -192,10 +216,10 @@ const Signup = () => {
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-gray-300 dark:border-gray-600" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or continue with</span>
             </div>
           </div>
 
@@ -203,8 +227,8 @@ const Signup = () => {
           <button
             onClick={loginWithGoogle}
             type="button"
-            disabled={loading}
-            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+            disabled={loading || success}
+            className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -217,9 +241,9 @@ const Signup = () => {
         </div>
 
         {/* Login Link */}
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline font-medium">
+          <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
             Sign in
           </Link>
         </p>

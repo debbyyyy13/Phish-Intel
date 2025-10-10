@@ -1,7 +1,7 @@
-// src/App.jsx - Updated with Extension Route
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import Header from "./components/Header";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -19,49 +19,53 @@ const ProtectedRoute = ({ children }) => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      {/* Global Header - will conditionally show based on route */}
-      <Header />
+    <ThemeProvider>
+      <AuthProvider>
+        <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
+          {/* Global Header - will conditionally show based on route */}
+          <Header />
 
-      {/* Routes */}
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/extension"
-          element={
-            <ProtectedRoute>
-              <Extension />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/submit"
-          element={
-            <ProtectedRoute>
-              <SubmitEmail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/quarantine"
-          element={
-            <ProtectedRoute>
-              <Quarantine />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AuthProvider>
+          {/* Routes */}
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/extension"
+              element={
+                <ProtectedRoute>
+                  <Extension />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/submit"
+              element={
+                <ProtectedRoute>
+                  <SubmitEmail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/quarantine"
+              element={
+                <ProtectedRoute>
+                  <Quarantine />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
