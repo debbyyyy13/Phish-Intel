@@ -41,8 +41,8 @@ def signup():
         db.session.add(user)
         db.session.commit()
 
-        # Create access token
-        access_token = create_access_token(identity=user.id)
+        # ✅ FIX: Convert user_id to string for JWT subject claim
+        access_token = create_access_token(identity=str(user.id))
 
         return jsonify({
             "access_token": access_token,
@@ -93,8 +93,8 @@ def login():
             print(f"❌ Invalid password for user: {email}")
             return jsonify({"error": "Invalid credentials"}), 401
 
-        # Create access token
-        access_token = create_access_token(identity=user.id)
+        # ✅ FIX: Convert user_id to string for JWT subject claim
+        access_token = create_access_token(identity=str(user.id))
 
         print(f"✅ Login successful for: {email}")
         
@@ -119,7 +119,9 @@ def login():
 @jwt_required()
 def me():
     try:
-        user_id = get_jwt_identity()
+        # ✅ FIX: get_jwt_identity() now returns a string, convert to int for DB query
+        user_id_str = get_jwt_identity()
+        user_id = int(user_id_str)
         user = User.query.get(user_id)
         
         if not user:

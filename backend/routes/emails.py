@@ -27,12 +27,31 @@ def classify():
         return jsonify({"error": str(e)}), 500
 
 
+@emails_bp.route("/quarantine-test", methods=["GET"])
+@jwt_required()
+def get_quarantine_test():
+    """Test endpoint without any validation"""
+    try:
+        user_id_str = get_jwt_identity()
+        user_id = int(user_id_str)
+        return jsonify({
+            "status": "ok",
+            "user_id": user_id,
+            "message": "Test endpoint works"
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @emails_bp.route("/quarantine", methods=["GET"])
 @jwt_required()
 def get_quarantine():
     """Get all quarantined emails for the current user"""
     try:
-        user_id = get_jwt_identity()
+        # ✅ FIX: Convert string user_id from JWT to integer
+        user_id_str = get_jwt_identity()
+        user_id = int(user_id_str)
+        print(f"🔍 Fetching quarantine for user_id: {user_id}")
         
         # Get all quarantined emails for this user
         quarantined_emails = Quarantine.query.filter_by(
@@ -40,30 +59,43 @@ def get_quarantine():
             released=False
         ).order_by(Quarantine.quarantined_at.desc()).all()
         
-        # Convert to dict
+        print(f"✅ Found {len(quarantined_emails)} quarantined emails")
+        
+        # If no emails, return empty array
+        if not quarantined_emails:
+            return jsonify([]), 200
+        
+        # Convert to dict with safe string conversion
         result = []
         for email in quarantined_emails:
-            result.append({
-                "id": email.id,
-                "sender": email.sender,
-                "recipient": email.recipient,
-                "subject": email.subject,
-                "body": email.body[:200] if email.body else None,  # First 200 chars
-                "threat_level": email.threat_level,
-                "confidence_score": email.confidence_score,
-                "reason": email.reason,
-                "quarantined_at": email.quarantined_at.isoformat() if email.quarantined_at else None,
-                "expires_at": email.expires_at.isoformat() if email.expires_at else None
-            })
+            try:
+                email_dict = {
+                    "id": email.id,
+                    "sender": str(email.sender) if email.sender is not None else "Unknown",
+                    "recipient": str(email.recipient) if email.recipient is not None else "Unknown",
+                    "subject": str(email.subject) if email.subject is not None else "No subject",
+                    "body": str(email.body[:200]) if email.body is not None else "",
+                    "threat_level": str(email.threat_level) if email.threat_level is not None else "unknown",
+                    "confidence_score": float(email.confidence_score) if email.confidence_score is not None else 0.0,
+                    "reason": str(email.reason) if email.reason is not None else "Suspicious content",
+                    "quarantined_at": email.quarantined_at.isoformat() if email.quarantined_at is not None else None,
+                    "expires_at": email.expires_at.isoformat() if email.expires_at is not None else None
+                }
+                result.append(email_dict)
+            except Exception as e:
+                print(f"⚠️ Error serializing email {email.id}: {e}")
+                import traceback
+                traceback.print_exc()
+                continue
         
-        print(f"✅ Found {len(result)} quarantined emails for user {user_id}")
+        print(f"✅ Returning {len(result)} quarantined emails")
         return jsonify(result), 200
         
     except Exception as e:
         print(f"❌ Quarantine fetch error: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({"error": "Failed to fetch quarantine data"}), 500
+        return jsonify({"error": "Failed to fetch quarantine data", "details": str(e)}), 500
 
 
 @emails_bp.route("/quarantine/<int:q_id>/release", methods=["POST"])
@@ -71,7 +103,9 @@ def get_quarantine():
 def release(q_id):
     """Release an email from quarantine"""
     try:
-        user_id = get_jwt_identity()
+        # ✅ FIX: Convert string user_id from JWT to integer
+        user_id_str = get_jwt_identity()
+        user_id = int(user_id_str)
         
         # Find the quarantined email
         email = Quarantine.query.filter_by(id=q_id, user_id=user_id).first()
@@ -96,19 +130,6 @@ def release(q_id):
         print(f"Release error: {e}")
         return jsonify({"error": "Failed to release email"}), 500
 
-@emails_bp.route('/quarantine', methods=['GET'])
-@jwt_required()
-def get_quarantine():
-    user_id = get_jwt_identity()
-    # Get quarantined emails from database
-    emails = Email.query.filter_by(
-        user_id=user_id, 
-        is_quarantined=True
-    ).order_by(Email.created_at.desc()).all()
-    
-    return jsonify({
-        'emails': [email.to_dict() for email in emails]
-    }), 200
 
 @emails_bp.route("/quarantine/<int:q_id>", methods=["DELETE"])
 @jwt_required()

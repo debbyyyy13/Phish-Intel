@@ -77,17 +77,13 @@ def create_app():
         return jsonify({
             'total_reports': 150,
             'active_users': 25,
-            'threats_detected': 45,
+            'threats_blocked': 45,
             'safe_emails': 105,
             'last_scan': datetime.utcnow().isoformat()
         }), 200
 
-    # ✅ ADD QUARANTINE ROUTE (INSIDE create_app function)
-    @app.route("/api/v1/quarantine", methods=['GET'])
-    def get_quarantine():
-        return jsonify([]), 200
+    # ❌ REMOVED DUPLICATE QUARANTINE ROUTE - It's now only in emails.py
 
-    # ✅ This stays inside create_app
     with app.app_context():
         db.create_all()
         schedule_retrain(app)
@@ -100,11 +96,24 @@ if __name__=="__main__":
     if not os.path.exists(MODEL_PATH_TEXT):
         # Initial training from CSV
         from backend.ml_service.train_and_save import train_and_save
-        files = [
-            r"C:/Users/debby/OneDrive/Desktop/final year project/datasets/Phishing_validation_emails.csv",
-            r"C:/Users/debby/OneDrive/Desktop/final year project/datasets/SpamAssasin.csv",
-            # add others...
-        ]
-        train_and_save(files, model_dir="ml_models")
+        
+        # Dataset directory
+        datasets_dir = r"C:\Users\debby\OneDrive\Desktop\final year project\datasets"
+        
+        # Get all CSV files from the datasets folder
+        files = []
+        if os.path.exists(datasets_dir):
+            for filename in os.listdir(datasets_dir):
+                if filename.endswith('.csv'):
+                    full_path = os.path.join(datasets_dir, filename)
+                    files.append(full_path)
+                    logger.info(f"📄 Found dataset: {filename}")
+        
+        if files:
+            logger.info(f"🚀 Training model with {len(files)} dataset(s)...")
+            train_and_save(files, model_dir="ml_models")
+        else:
+            logger.warning(f"⚠️ No CSV files found in {datasets_dir}")
+    
     load_models()
     app.run(host="0.0.0.0", port=8000, debug=True)
