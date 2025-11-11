@@ -6,7 +6,6 @@ from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
-
 import joblib, xgboost as xgb, numpy as np
 
 load_dotenv()
