@@ -36,10 +36,10 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <Activity className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading dashboard...</p>
+          <Activity className="w-12 h-12 animate-spin text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading dashboard...</p>
         </div>
       </div>
     )
@@ -47,10 +47,10 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-500">{error}</p>
+          <AlertTriangle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
+          <p className="text-red-500 dark:text-red-400">{error}</p>
         </div>
       </div>
     )
@@ -58,8 +58,8 @@ const Dashboard = () => {
 
   if (!dashboardData) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">No data available</p>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <p className="text-gray-500 dark:text-gray-400">No data available</p>
       </div>
     )
   }
@@ -96,50 +96,50 @@ const Dashboard = () => {
       title: "Total Scans",
       value: dashboardData.total_reports || "0",
       icon: <Mail className="w-6 h-6" />,
-      color: "bg-blue-500",
+      color: "bg-blue-500 dark:bg-blue-600",
       trend: "+12%"
     },
     {
       title: "Threats Blocked",
       value: dashboardData.threats_blocked || dashboardData.threats_detected || "0",
       icon: <Shield className="w-6 h-6" />,
-      color: "bg-red-500",
+      color: "bg-red-500 dark:bg-red-600",
       trend: "-8%"
     },
     {
       title: "Safe Emails",
       value: dashboardData.safe_emails || "0",
       icon: <CheckCircle className="w-6 h-6" />,
-      color: "bg-green-500",
+      color: "bg-green-500 dark:bg-green-600",
       trend: "+15%"
     }
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Welcome back, {user?.name || "User"} 👋
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Here's what's happening with your email security today
           </p>
         </div>
 
-        {/* Stats Grid - 3 cards instead of 4 */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {stats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
+            <div key={index} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/30 p-6 hover:shadow-md dark:hover:shadow-gray-900/50 transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div className={`${stat.color} text-white p-3 rounded-lg`}>
                   {stat.icon}
                 </div>
-                <span className="text-sm font-semibold text-green-600">{stat.trend}</span>
+                <span className="text-sm font-semibold text-green-600 dark:text-green-400">{stat.trend}</span>
               </div>
-              <h3 className="text-gray-600 text-sm font-medium mb-1">{stat.title}</h3>
-              <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+              <h3 className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-1">{stat.title}</h3>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
             </div>
           ))}
         </div>
@@ -147,18 +147,25 @@ const Dashboard = () => {
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Weekly Activity Chart */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/30 p-6 transition-colors">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Weekly Activity</h2>
-              <BarChart3 className="w-5 h-5 text-gray-400" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Weekly Activity</h2>
+              <BarChart3 className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={weeklyTrends}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="day" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" className="dark:stroke-gray-700" />
+                <XAxis dataKey="day" stroke="#6b7280" className="dark:stroke-gray-400" />
+                <YAxis stroke="#6b7280" className="dark:stroke-gray-400" />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  contentStyle={{ 
+                    backgroundColor: 'rgb(31 41 55)', 
+                    border: '1px solid rgb(55 65 81)', 
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                  itemStyle={{ color: '#fff' }}
+                  labelStyle={{ color: '#fff' }}
                 />
                 <Legend />
                 <Bar dataKey="threats" fill="#ef4444" name="Threats" radius={[8, 8, 0, 0]} />
@@ -168,10 +175,10 @@ const Dashboard = () => {
           </div>
 
           {/* Threat Distribution */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/30 p-6 transition-colors">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Threat Distribution</h2>
-              <AlertTriangle className="w-5 h-5 text-gray-400" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Threat Distribution</h2>
+              <AlertTriangle className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -189,7 +196,14 @@ const Dashboard = () => {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgb(31 41 55)', 
+                    border: '1px solid rgb(55 65 81)', 
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -198,18 +212,23 @@ const Dashboard = () => {
         {/* Charts Row 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Detection Accuracy Trend */}
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/30 p-6 transition-colors">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Detection Accuracy</h2>
-              <TrendingUp className="w-5 h-5 text-green-500" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Detection Accuracy</h2>
+              <TrendingUp className="w-5 h-5 text-green-500 dark:text-green-400" />
             </div>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={detectionAccuracy}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" domain={[90, 100]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" className="dark:stroke-gray-700" />
+                <XAxis dataKey="month" stroke="#6b7280" className="dark:stroke-gray-400" />
+                <YAxis stroke="#6b7280" domain={[90, 100]} className="dark:stroke-gray-400" />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  contentStyle={{ 
+                    backgroundColor: 'rgb(31 41 55)', 
+                    border: '1px solid rgb(55 65 81)', 
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
                   formatter={(value) => `${value}%`}
                 />
                 <Line 
@@ -225,46 +244,46 @@ const Dashboard = () => {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/30 p-6 transition-colors">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-              <Clock className="w-5 h-5 text-gray-400" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+              <Clock className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             </div>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <div className="bg-red-100 p-2 rounded-lg">
-                  <AlertTriangle className="w-4 h-4 text-red-600" />
+                <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-lg">
+                  <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Phishing Blocked</p>
-                  <p className="text-xs text-gray-500">2 minutes ago</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Phishing Blocked</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">2 minutes ago</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="bg-green-100 p-2 rounded-lg">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
+                <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg">
+                  <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Email Verified Safe</p>
-                  <p className="text-xs text-gray-500">15 minutes ago</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Email Verified Safe</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">15 minutes ago</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <Shield className="w-4 h-4 text-blue-600" />
+                <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg">
+                  <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Model Retrained</p>
-                  <p className="text-xs text-gray-500">1 hour ago</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Model Retrained</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">1 hour ago</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="bg-yellow-100 p-2 rounded-lg">
-                  <Mail className="w-4 h-4 text-yellow-600" />
+                <div className="bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded-lg">
+                  <Mail className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">Spam Detected</p>
-                  <p className="text-xs text-gray-500">2 hours ago</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Spam Detected</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">2 hours ago</p>
                 </div>
               </div>
             </div>
@@ -272,25 +291,25 @@ const Dashboard = () => {
         </div>
 
         {/* System Status */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">System Status</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-gray-900/30 p-6 transition-colors">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">System Status</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-center gap-4">
-              <div className="bg-green-100 p-3 rounded-lg">
-                <Activity className="w-6 h-6 text-green-600" />
+              <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
+                <Activity className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">ML Model Status</p>
-                <p className="font-semibold text-green-600">Active</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">ML Model Status</p>
+                <p className="font-semibold text-green-600 dark:text-green-400">Active</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Clock className="w-6 h-6 text-blue-600" />
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
+                <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Last Scan</p>
-                <p className="font-semibold text-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Last Scan</p>
+                <p className="font-semibold text-gray-900 dark:text-white">
                   {dashboardData.last_scan 
                     ? new Date(dashboardData.last_scan).toLocaleString()
                     : "N/A"}
@@ -298,12 +317,12 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <Shield className="w-6 h-6 text-purple-600" />
+              <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-lg">
+                <Shield className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Protection Level</p>
-                <p className="font-semibold text-purple-600">Maximum</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Protection Level</p>
+                <p className="font-semibold text-purple-600 dark:text-purple-400">Maximum</p>
               </div>
             </div>
           </div>

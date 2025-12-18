@@ -56,23 +56,51 @@ def create_app():
     from backend.models import db
     db.init_app(app)
     Migrate(app, db)
-    CORS(app, resources={r"/api/*": {"origins":"*"}}, supports_credentials=True)
+    
+    # ✅ UPDATED CORS CONFIGURATION
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": [
+                "http://localhost:5173",      # Vite frontend
+                "http://localhost:3000",      # Alternative frontend port
+                "chrome-extension://*",       # Chrome extension
+                "moz-extension://*",          # Firefox extension
+                "*"                           # Allow all for development (remove in production)
+            ],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": [
+                "Content-Type", 
+                "Authorization", 
+                "X-Extension-Version",
+                "X-Requested-With"
+            ],
+            "supports_credentials": True,
+            "expose_headers": ["Content-Type", "Authorization"]
+        }
+    })
+    
     JWTManager(app)
 
+    # Register blueprints
     from backend.routes.auth import auth_bp
     from backend.routes.users import users_bp
     from backend.routes.emails import emails_bp
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(emails_bp)
 
     @app.route("/api/v1/health")
     def health():
-        return {"status":"ok","models_loaded": model_text is not None, "time": datetime.utcnow().isoformat()}
+        return jsonify({
+            "status": "ok",
+            "models_loaded": model_text is not None,
+            "time": datetime.utcnow().isoformat()
+        }), 200
 
-    # ✅ ADD DASHBOARD ROUTE (INSIDE create_app function)
     @app.route("/api/v1/dashboard", methods=['GET'])
     def dashboard():
+        """Dashboard endpoint - returns mock data for now"""
         return jsonify({
             'total_reports': 150,
             'active_users': 25,
@@ -80,8 +108,6 @@ def create_app():
             'safe_emails': 105,
             'last_scan': datetime.utcnow().isoformat()
         }), 200
-
-    # ❌ REMOVED DUPLICATE QUARANTINE ROUTE - It's now only in emails.py
 
     with app.app_context():
         db.create_all()
@@ -115,4 +141,5 @@ if __name__=="__main__":
             logger.warning(f"⚠️ No CSV files found in {datasets_dir}")
     
     load_models()
+    logger.info("🚀 Starting Flask server on http://0.0.0.0:8000")
     app.run(host="0.0.0.0", port=8000, debug=True)

@@ -1,11 +1,10 @@
 {
-  "name": "email-security-scanner",
-  "version": "1.0.0",
-  "description": "AI-powered email threat detection browser extension",
+  "name": "phishguard-extension",
+  "version": "2.0.0",
+  "description": "AI-powered email threat detection",
   "scripts": {
     "build": "node build.js",
-    "package": "zip -r extension.zip dist/",
-    "dev": "node watch.js"
+    "clean": "rm -rf dist *.zip"
   },
   "devDependencies": {
     "archiver": "^6.0.0",
