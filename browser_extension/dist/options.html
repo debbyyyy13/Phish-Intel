@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishGuard Settings & Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 16px;
+    }
+
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 15px;
+      font-weight: 600;
+      color: #6c757d;
+      transition: all 0.3s;
+    }
+
+    .tab:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .tab.active {
+      color: #667eea;
+      background: white;
+      border-bottom: 3px solid #667eea;
+    }
+
+    .tab-content {
+      display: none;
+      padding: 40px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #212529;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+
+    .setting-info h3 {
+      font-size: 15px;
+      margin-bottom: 4px;
+      color: #212529;
+    }
+
+    .setting-info p {
+      font-size: 13px;
+      color: #6c757d;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 56px;
+      height: 28px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 28px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #667eea;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(28px);
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #212529;
+      font-size: 14px;
+    }
+
+    .input-group input[type="text"],
+    .input-group input[type="number"],
+    .input-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      border: 2px solid #e9ecef;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 8px;
+    }
+
+    .stat-card.danger .stat-value {
+      color: #dc3545;
+    }
+
+    .stat-card.success .stat-value {
+      color: #28a745;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .provider-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .provider-card {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+
+    .provider-name {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #212529;
+    }
+
+    .provider-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .alert {
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .history-table th,
+    .history-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .history-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #212529;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .badge-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .slider-container {
+      margin: 20px 0;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #e9ecef;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛡️ PhishGuard</h1>
+      <p>AI-Powered Email Security for Gmail, Outlook, Yahoo & More</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="settings">Settings</button>
+      <button class="tab" data-tab="history">History</button>
+      <button class="tab" data-tab="about">About</button>
+    </div>
+
+    <div id="dashboard" class="tab-content active">
+      <div class="section">
+        <h2 class="section-title">📊 Overall Statistics</h2>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="totalScanned">0</div>
+            <div class="stat-label">Emails Scanned</div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-value" id="threatsDetected">0</div>
+            <div class="stat-label">Threats Detected</div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-value" id="emailsQuarantined">0</div>
+            <div class="stat-label">Emails Quarantined</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="detectionRate">0%</div>
+            <div class="stat-label">Detection Rate</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">📧 Email Provider Statistics</h2>
+        <div class="card">
+          <div class="provider-stats" id="providerStats">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">🔄 Recent Activity</h2>
+        <div class="card">
+          <p><strong>Last Scan:</strong> <span id="lastScan">Never</span></p>
+          <p style="margin-top: 8px;"><strong>Status:</strong> <span id="extensionStatus">Loading...</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="settings" class="tab-content">
+      <div class="alert alert-success" id="saveAlert">
+        Settings saved successfully!
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">⚙️ General Settings</h2>
+        <div class="card">
+          <div class="setting-row">
+            <div class="setting-info">
+              <h3>Enable PhishGuard</h3>
+              <p>Turn on/off the extension</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="enabledToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <h3>Auto-Scan Emails</h3>
+              <p>Automatically analyze incoming emails</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="autoScanToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <h3>Auto-Quarantine Threats</h3>
+              <p>Automatically move detected phishing emails to spam</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="autoQuarantineToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <h3>Show Safe Indicators</h3>
+              <p>Display checkmarks for verified safe emails</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="showSafeToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <h3>Notifications</h3>
+              <p>Show desktop notifications for threats</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="notificationsToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">🎯 Detection Settings</h2>
+        <div class="card">
+          <div class="slider-container">
+            <div class="slider-label">
+              <label>Confidence Threshold for Auto-Quarantine</label>
+              <span id="thresholdValue">60%</span>
+            </div>
+            <input type="range" id="confidenceThreshold" min="0" max="100" value="60">
+            <p style="margin-top: 8px; font-size: 13px; color: #6c757d;">
+              Only emails with confidence above this threshold will be auto-quarantined
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">🔌 API Configuration</h2>
+        <div class="card">
+          <div class="input-group">
+            <label for="apiEndpoint">API Endpoint</label>
+            <input type="text" id="apiEndpoint" placeholder="https://your-backend-api.com/api">
+          </div>
+
+          <div class="input-group">
+            <label for="apiKey">API Key (Optional)</label>
+            <input type="text" id="apiKey" placeholder="Enter your API key or leave blank for demo mode">
+          </div>
+
+          <button class="btn btn-primary" id="testApiBtn">Test Connection</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <button class="btn btn-primary" id="saveSettings">Save Settings</button>
+        <button class="btn btn-secondary" id="resetSettings">Reset to Defaults</button>
+      </div>
+    </div>
+
+    <div id="history" class="tab-content">
+      <div class="section">
+        <h2 class="section-title">📜 Scan History</h2>
+        <div class="card">
+          <table class="history-table" id="historyTable">
+            <thead>
+              <tr>
+                <th>Date/Time</th>
+                <th>From</th>
+                <th>Subject</th>
+                <th>Result</th>
+                <th>Confidence</th>
+                <th>Provider</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 40px;">No scan history yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <button class="btn btn-secondary" id="clearHistory">Clear History</button>
+          <button class="btn btn-primary" id="exportHistory">Export as CSV</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="about" class="tab-content">
+      <div class="section">
+        <h2 class="section-title">ℹ️ About PhishGuard</h2>
+        <div class="card">
+          <h3 style="margin-bottom: 12px;">Version 2.0.0</h3>
+          <p style="margin-bottom: 16px; line-height: 1.6;">
+            PhishGuard is an AI-powered browser extension that protects you from phishing emails 
+            across Gmail, Outlook, Yahoo Mail, and other email providers. Using advanced machine 
+            learning algorithms, it analyzes emails in real-time to detect and quarantine threats.
+          </p>
+
+          <h3 style="margin: 24px 0 12px 0;">Features:</h3>
+          <ul style="line-height: 2;">
+            <li>✅ Real-time phishing detection</li>
+            <li>✅ Support for Gmail, Outlook, Yahoo, ProtonMail, and Zoho</li>
+            <li>✅ Automatic quarantine of threats</li>
+            <li>✅ Advanced URL and header analysis</li>
+            <li>✅ Machine learning with 95%+ accuracy</li>
+            <li>✅ Privacy-focused (local analysis available)</li>
+          </ul>
+
+          <h3 style="margin: 24px 0 12px 0;">Keyboard Shortcuts:</h3>
+          <ul style="line-height: 2;">
+            <li><strong>Ctrl/Cmd + Shift + P:</strong> Mark selected email as phishing and quarantine</li>
+          </ul>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+            <p style="text-align: center; color: #6c757d;">
+              Made with ❤️ for safer email communication
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
