@@ -1,30 +1,38 @@
 {
   "manifest_version": 3,
-  "name": "Email Security Scanner",
-  "version": "1.0.0",
-  "description": "Real-time email threat detection powered by machine learning",
+  "name": "PhishGuard - AI Email Security",
+  "version": "2.0.0",
+  "description": "Real-time AI-powered phishing detection for Gmail, Outlook, Yahoo Mail, and more",
+  
   "permissions": [
     "storage",
-    "tabs",
     "notifications",
-    "alarms"
+    "alarms",
+    "activeTab"
   ],
+  
   "host_permissions": [
     "https://mail.google.com/*",
     "https://outlook.live.com/*",
     "https://outlook.office365.com/*",
-    "https://outlook.office.com/*"
+    "https://outlook.office.com/*",
+    "https://mail.yahoo.com/*",
+    "https://*.mail.yahoo.com/*",
+    "https://mail.protonmail.com/*",
+    "https://mail.zoho.com/*",
+    "https://your-backend-api.com/*"
   ],
+  
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
+  
   "content_scripts": [
     {
-      "matches": [
-        "https://mail.google.com/*"
-      ],
-      "js": ["content-gmail.js"],
+      "matches": ["https://mail.google.com/*"],
+      "js": ["utils/common.js", "content-gmail.js"],
+      "css": ["styles/common.css"],
       "run_at": "document_end"
     },
     {
@@ -33,10 +41,33 @@
         "https://outlook.office365.com/*",
         "https://outlook.office.com/*"
       ],
-      "js": ["content-outlook.js"],
+      "js": ["utils/common.js", "content-outlook.js"],
+      "css": ["styles/common.css"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://mail.yahoo.com/*",
+        "https://*.mail.yahoo.com/*"
+      ],
+      "js": ["utils/common.js", "content-yahoo.js"],
+      "css": ["styles/common.css"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://mail.protonmail.com/*"],
+      "js": ["utils/common.js", "content-protonmail.js"],
+      "css": ["styles/common.css"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://mail.zoho.com/*"],
+      "js": ["utils/common.js", "content-zoho.js"],
+      "css": ["styles/common.css"],
       "run_at": "document_end"
     }
   ],
+  
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -45,15 +76,23 @@
       "128": "icons/icon128.png"
     }
   },
+  
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  
   "web_accessible_resources": [
     {
-      "resources": ["warning-banner.html", "styles.css"],
-      "matches": ["https://mail.google.com/*", "https://outlook.live.com/*", "https://outlook.office365.com/*", "https://outlook.office.com/*"]
+      "resources": [
+        "styles/common.css",
+        "icons/*.png",
+        "utils/injected.js"
+      ],
+      "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  
+  "options_page": "options.html"
 }

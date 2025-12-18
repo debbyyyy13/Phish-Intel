@@ -35,29 +35,57 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // 🔹 Login
-  const login = async (email, password) => {
-    try {
-      setLoading(true);
-      const response = await api.post("/auth/login", { email, password });
-      const { access_token, user: userData } = response.data;
+const login = async (email, password) => {
+  try {
+    setLoading(true);
+    const response = await api.post("/auth/login", { email, password });
+    const { access_token, user: userData } = response.data;
 
-      sessionStorage.setItem("phish_token", access_token);
-      sessionStorage.setItem("phish_user", JSON.stringify(userData));
+    sessionStorage.setItem("phish_token", access_token);
+    sessionStorage.setItem("phish_user", JSON.stringify(userData));
 
-      api.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
-      setUser(userData);
+    api.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+    setUser(userData);
 
-      return { success: true };
-    } catch (error) {
-      console.error("Login error:", error);
-      return {
-        success: false,
-        error: error.response?.data?.error || error.message || "Login failed",
-      };
-    } finally {
-      setLoading(false);
+    return { success: true };
+  } catch (error) {
+    console.error("Login error:", error);
+    
+    let errorMessage = "Login failed";
+    
+    // Check for network errors (timeout, no connection, etc.)
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED') {
+      errorMessage = "Network error: Unable to connect to server. Please check your connection and try again.";
+    } 
+    // Check if it's a timeout
+    else if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
+      errorMessage = "Network timeout: The server is taking too long to respond. Please try again.";
     }
-  };
+    // Authentication errors (401)
+    else if (error.response?.status === 401) {
+      errorMessage = "Email or password incorrect. Please try again.";
+    }
+    // Server errors (500)
+    else if (error.response?.status === 500) {
+      errorMessage = "Server error: Something went wrong. Please try again later.";
+    }
+    // Bad request (400)
+    else if (error.response?.status === 400) {
+      errorMessage = error.response?.data?.error || "Invalid request. Please check your input.";
+    }
+    // Any other error with response data
+    else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  } finally {
+    setLoading(false);
+  }
+};
 
   // 🔹 Login with Google
   const loginWithGoogle = () => {
