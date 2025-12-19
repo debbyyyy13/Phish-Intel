@@ -1,22 +1,63 @@
-// content-gmail.js - Enhanced Gmail monitoring with quarantine support
+// content-gmail.js - Enhanced Gmail monitoring with robust error handling
 
-// Wait for EmailMonitorBase to be available
 (function() {
   'use strict';
   
   console.log('[PhishGuard] Gmail script loading...');
 
+  // Helper function to check if extension context is still valid
+  function isExtensionContextValid() {
+    try {
+      return !!(chrome && chrome.runtime && chrome.runtime.id);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Helper function to safely send messages to background
+  function safeSendMessage(message, callback) {
+    if (!isExtensionContextValid()) {
+      console.warn('[PhishGuard] Extension context invalidated. Please refresh the page.');
+      if (callback) callback(null);
+      return;
+    }
+
+    try {
+      chrome.runtime.sendMessage(message, (response) => {
+        if (chrome.runtime.lastError) {
+          const errorMsg = chrome.runtime.lastError.message;
+          if (errorMsg.includes('Extension context invalidated')) {
+            console.warn('[PhishGuard] Extension was reloaded. Please refresh Gmail page.');
+          } else {
+            console.error('[PhishGuard] Runtime error:', errorMsg);
+          }
+          if (callback) callback(null);
+        } else {
+          if (callback) callback(response);
+        }
+      });
+    } catch (error) {
+      console.error('[PhishGuard] Exception sending message:', error);
+      if (callback) callback(null);
+    }
+  }
+
   class GmailMonitor extends EmailMonitorBase {
     constructor() {
       super('Gmail');
       this.gmailAPI = null;
+      this.isActive = true;
       console.log('[PhishGuard] GmailMonitor constructor called');
     }
 
-    // Override init to add Gmail-specific initialization
     async init() {
       console.log('[PhishGuard] GmailMonitor.init() called');
       
+      if (!isExtensionContextValid()) {
+        console.error('[PhishGuard] Cannot initialize - extension context is invalid');
+        return;
+      }
+
       try {
         const settings = await this.getSettings();
         if (!settings.enabled) {
@@ -36,6 +77,12 @@
     async waitForInterface() {
       return new Promise((resolve) => {
         const checkGmail = setInterval(() => {
+          if (!this.isActive) {
+            clearInterval(checkGmail);
+            resolve();
+            return;
+          }
+
           const main = document.querySelector('[role="main"]');
           const inbox = document.querySelector('[aria-label*="Inbox"]') || 
                        document.querySelector('[href*="inbox"]');
@@ -49,18 +96,25 @@
 
         setTimeout(() => {
           clearInterval(checkGmail);
-          console.warn('[PhishGuard] Gmail timeout');
+          console.warn('[PhishGuard] Gmail interface detection timeout');
           resolve();
         }, 30000);
       });
     }
 
     startMonitoring() {
+      if (!isExtensionContextValid()) {
+        console.warn('[PhishGuard] Cannot start monitoring - invalid context');
+        return;
+      }
+
       console.log('[PhishGuard] Starting Gmail monitoring');
       
       // Monitor inbox for new emails
       this.observer = new MutationObserver(() => {
-        this.checkForNewEmails();
+        if (this.isActive && isExtensionContextValid()) {
+          this.checkForNewEmails();
+        }
       });
 
       const mainContent = document.querySelector('[role="main"]');
@@ -82,7 +136,8 @@
     }
 
     checkForNewEmails() {
-      // Gmail email rows
+      if (!isExtensionContextValid()) return;
+
       const emailRows = document.querySelectorAll('tr.zA:not([data-phishguard-processed])');
       
       emailRows.forEach(row => {
@@ -103,6 +158,11 @@
     }
 
     async scanEmailRow(row, emailId) {
+      if (!isExtensionContextValid()) {
+        row.classList.remove('phishguard-processing');
+        return;
+      }
+
       try {
         row.classList.add('phishguard-processing');
 
@@ -113,51 +173,46 @@
         }
 
         const result = await this.analyzeEmail(emailData);
-        await this.handleAnalysisResult(row, emailId, result, emailData);
+        if (result) {
+          await this.handleAnalysisResult(row, emailId, result, emailData);
 
-        // Update stats
-        chrome.runtime.sendMessage({
-          action: 'updateStats',
-          data: { 
-            isThreat: result.prediction === 'phish' || result.threat,
-            provider: 'gmail'
-          }
-        });
+          // Update stats
+          safeSendMessage({
+            action: 'updateStats',
+            data: { 
+              isThreat: result.prediction === 'phish' || result.threat,
+              provider: 'gmail'
+            }
+          });
+        }
       } catch (error) {
         console.error('[PhishGuard] Error scanning Gmail email:', error);
+      } finally {
         row.classList.remove('phishguard-processing');
       }
     }
 
     extractEmailDataFromRow(row) {
       try {
-        // Extract sender email
         const senderElement = row.querySelector('[email]');
         const sender = senderElement?.getAttribute('email') || 
                        senderElement?.getAttribute('name') || '';
 
-        // Extract sender display name
         const nameElement = row.querySelector('.yW span[email]') || 
                            row.querySelector('.yW .gD');
         const senderName = nameElement?.getAttribute('name') || 
                           nameElement?.textContent || '';
 
-        // Extract subject
         const subjectElement = row.querySelector('.bog span') || 
                               row.querySelector('[data-thread-id] span');
         const subject = subjectElement?.textContent || '';
 
-        // Extract snippet
         const snippetElement = row.querySelector('.y2');
         const snippet = snippetElement?.textContent || '';
 
-        // Check if unread
         const isUnread = row.classList.contains('zE');
-
-        // Check for attachments
         const hasAttachment = row.querySelector('[title*="Attachment"]') !== null;
 
-        // Extract date
         const dateElement = row.querySelector('.xW span[title]');
         const dateText = dateElement?.getAttribute('title') || 
                         dateElement?.textContent || '';
@@ -182,8 +237,6 @@
     }
 
     async handleAnalysisResult(row, emailId, result, emailData) {
-      row.classList.remove('phishguard-processing');
-
       const isPhishing = result.prediction === 'phish' || result.threat;
       const settings = await this.getSettings();
 
@@ -191,19 +244,15 @@
         console.log('[PhishGuard] Threat detected in Gmail:', emailId);
         row.classList.add('phishguard-warning');
 
-        // Add warning icon
         this.addWarningIcon(row, result);
 
-        // Auto-quarantine if enabled and confidence is high enough
         if (settings.autoQuarantine && result.confidence_score > settings.confidenceThreshold) {
-          // Small delay before quarantine to ensure proper UI update
           setTimeout(async () => {
             await this.moveToQuarantine(emailData, row);
           }, 500);
         }
       } else if (settings.showSafeIndicators) {
         row.classList.add('phishguard-safe');
-        // Optionally add safe icon
         const nameElement = row.querySelector('.yW');
         if (nameElement && !nameElement.querySelector('.phishguard-icon')) {
           const icon = document.createElement('span');
@@ -229,17 +278,19 @@
     }
 
     monitorEmailView() {
-      // Monitor when user opens an email
       document.addEventListener('click', (e) => {
+        if (!isExtensionContextValid()) return;
+        
         const emailRow = e.target.closest('tr.zA');
         if (emailRow) {
           setTimeout(() => this.scanOpenEmail(), 500);
         }
       });
 
-      // Also monitor for URL changes (Gmail is a single-page app)
       let lastUrl = location.href;
       new MutationObserver(() => {
+        if (!this.isActive || !isExtensionContextValid()) return;
+        
         const url = location.href;
         if (url !== lastUrl) {
           lastUrl = url;
@@ -251,6 +302,11 @@
     }
 
     async scanOpenEmail() {
+      if (!isExtensionContextValid()) {
+        console.warn('[PhishGuard] Cannot scan email - extension context invalidated');
+        return;
+      }
+
       const emailView = document.querySelector('[role="main"] [data-message-id]') ||
                        document.querySelector('.adn.ads');
       
@@ -261,16 +317,17 @@
 
       try {
         const result = await this.analyzeEmail(emailData);
+        if (!result) return;
+
         const isPhishing = result.prediction === 'phish' || result.threat;
 
         if (isPhishing || (await this.getSettings()).showSafeIndicators) {
           const banner = this.showWarningBanner(emailView, result, emailData);
           
-          // Insert banner at the top of email
           const subjectElement = emailView.querySelector('h2') || 
                                 emailView.querySelector('.hP');
           
-          if (subjectElement) {
+          if (subjectElement && subjectElement.parentNode) {
             subjectElement.parentNode.insertBefore(banner, subjectElement.nextSibling);
           } else {
             emailView.insertBefore(banner, emailView.firstChild);
@@ -283,36 +340,30 @@
 
     extractFullEmailData(emailView) {
       try {
-        // Extract sender
         const senderElement = emailView.querySelector('[email]') ||
                              emailView.querySelector('.gD[email]');
         const sender = senderElement?.getAttribute('email') || '';
         const senderName = senderElement?.getAttribute('name') || 
                           senderElement?.textContent || '';
 
-        // Extract subject
         const subjectElement = emailView.querySelector('h2') ||
                               emailView.querySelector('.hP');
         const subject = subjectElement?.textContent || '';
 
-        // Extract body
         const bodyElement = emailView.querySelector('[data-message-id] .a3s') ||
                            emailView.querySelector('.a3s.aiL');
         const body = bodyElement?.innerHTML || '';
         const bodyText = bodyElement?.textContent || '';
 
-        // Extract attachments
         const attachmentElements = emailView.querySelectorAll('.aZo');
         const attachments = Array.from(attachmentElements).map(att => ({
           name: att.textContent.trim()
         }));
 
-        // Check email authentication
         const spfPass = emailView.querySelector('[data-tooltip*="SPF: PASS"]') !== null ||
                        emailView.textContent.includes('mailed-by:');
         const dkimPass = emailView.querySelector('[data-tooltip*="DKIM"]') !== null;
 
-        // Extract URLs
         const urls = this.extractURLs(body + ' ' + bodyText);
 
         return {
@@ -337,16 +388,16 @@
     }
 
     async moveToQuarantine(emailData, row = null) {
+      if (!isExtensionContextValid()) return;
+
       try {
         console.log('[PhishGuard] Moving Gmail email to spam');
 
-        // Find the spam button in toolbar
         const spamButton = document.querySelector('[aria-label*="Report spam"]') ||
                           document.querySelector('[data-tooltip*="Report spam"]') ||
                           document.querySelector('[title*="Report spam"]');
 
         if (row) {
-          // If we have the row, select it first
           row.click();
           await this.sleep(300);
         }
@@ -355,8 +406,7 @@
           spamButton.click();
           this.showQuarantineNotice('Email moved to Spam');
 
-          // Notify background
-          chrome.runtime.sendMessage({
+          safeSendMessage({
             action: 'emailQuarantined',
             data: {
               provider: 'gmail',
@@ -367,7 +417,7 @@
           return;
         }
 
-        // Fallback: use keyboard shortcut (!) for spam
+        // Fallback: keyboard shortcut
         const event = new KeyboardEvent('keydown', {
           key: '!',
           code: 'Digit1',
@@ -378,7 +428,7 @@
 
         this.showQuarantineNotice('Email reported as spam');
 
-        chrome.runtime.sendMessage({
+        safeSendMessage({
           action: 'emailQuarantined',
           data: {
             provider: 'gmail',
@@ -394,7 +444,8 @@
 
     setupKeyboardShortcuts() {
       document.addEventListener('keydown', async (e) => {
-        // Ctrl/Cmd + Shift + P: Mark as phishing and quarantine
+        if (!isExtensionContextValid()) return;
+
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
           e.preventDefault();
           
@@ -409,25 +460,29 @@
       });
     }
 
-    // Methods that need to be implemented or called from background
     async analyzeEmail(emailData) {
+      if (!isExtensionContextValid()) {
+        console.warn('[PhishGuard] Cannot analyze - extension context invalidated');
+        return { prediction: 'safe', confidence_score: 0, threat: false };
+      }
+
       return new Promise((resolve) => {
-        chrome.runtime.sendMessage({
+        safeSendMessage({
           action: 'analyzeEmail',
           data: emailData
         }, (response) => {
-          if (chrome.runtime.lastError) {
-            console.error('[PhishGuard] Error analyzing email:', chrome.runtime.lastError);
+          if (!response) {
             resolve({ prediction: 'safe', confidence_score: 0, threat: false });
+          } else if (response.success && response.result) {
+            resolve(response.result);
           } else {
-            resolve(response || { prediction: 'safe', confidence_score: 0, threat: false });
+            resolve({ prediction: 'safe', confidence_score: 0, threat: false });
           }
         });
       });
     }
 
     showWarningBanner(emailView, result, emailData) {
-      // Check if banner already exists
       const existingBanner = emailView.querySelector('.phishguard-banner');
       if (existingBanner) {
         existingBanner.remove();
@@ -464,7 +519,6 @@
     }
 
     showQuarantineNotice(message) {
-      // Check if notice already exists
       const existingNotice = document.querySelector('.phishguard-quarantine-notice');
       if (existingNotice) {
         existingNotice.remove();
@@ -489,6 +543,14 @@
       document.body.appendChild(notice);
       setTimeout(() => notice.remove(), 3000);
     }
+
+    destroy() {
+      this.isActive = false;
+      if (this.observer) {
+        this.observer.disconnect();
+      }
+      console.log('[PhishGuard] Gmail monitor destroyed');
+    }
   }
 
   // Initialize Gmail monitor with retry mechanism
@@ -509,15 +571,19 @@
           clearInterval(checkInterval);
           reject(new Error('EmailMonitorBase not loaded after ' + maxAttempts + ' attempts'));
         }
-      }, 100); // Check every 100ms
+      }, 100);
     });
   }
 
   async function initializeGmailMonitor() {
     console.log('[PhishGuard] Attempting to initialize Gmail monitor');
     
+    if (!isExtensionContextValid()) {
+      console.error('[PhishGuard] Cannot initialize - extension context is invalid. Please refresh the page.');
+      return;
+    }
+    
     try {
-      // Wait for base class to be available
       await waitForBaseClass();
       
       if (!gmailMonitor) {
@@ -536,6 +602,13 @@
       console.error('[PhishGuard] Error details:', error.message);
     }
   }
+
+  // Clean up on page unload
+  window.addEventListener('beforeunload', () => {
+    if (gmailMonitor) {
+      gmailMonitor.destroy();
+    }
+  });
 
   // Start initialization
   if (document.readyState === 'loading') {
