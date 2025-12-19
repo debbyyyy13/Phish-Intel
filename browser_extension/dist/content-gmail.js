@@ -383,13 +383,23 @@ class GmailMonitor extends EmailMonitorBase {
   }
 }
 
-// Initialize Gmail monitor
+// Initialize Gmail monitor - FIXED VERSION
+let gmailMonitor = null;
+
+function initializeGmailMonitor() {
+  try {
+    if (!gmailMonitor) {
+      gmailMonitor = new GmailMonitor();
+      gmailMonitor.init();
+      console.log('[PhishGuard] Gmail monitor initialized successfully');
+    }
+  } catch (error) {
+    console.error('[PhishGuard] Failed to initialize Gmail monitor:', error);
+  }
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    const monitor = new GmailMonitor();
-    monitor.init();
-  });
+  document.addEventListener('DOMContentLoaded', initializeGmailMonitor);
 } else {
-  const monitor = new GmailMonitor();
-  monitor.init();
+  initializeGmailMonitor();
 }

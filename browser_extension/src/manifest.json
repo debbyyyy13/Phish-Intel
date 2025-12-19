@@ -29,8 +29,8 @@
   "content_scripts": [
     {
       "matches": ["https://mail.google.com/*"],
-      "js": ["utils/common.js", "content-gmail.js"],
-      "run_at": "document_end"
+      "js": ["src/utils/common.js", "content-gmail.js"],
+      "run_at": "document_idle"
     },
     {
       "matches": [
@@ -38,16 +38,16 @@
         "https://outlook.office365.com/*",
         "https://outlook.office.com/*"
       ],
-      "js": ["utils/common.js", "content-outlook.js"],
-      "run_at": "document_end"
+      "js": ["src/utils/common.js", "content-outlook.js"],
+      "run_at": "document_idle"
     },
     {
       "matches": [
         "https://mail.yahoo.com/*",
         "https://*.mail.yahoo.com/*"
       ],
-      "js": ["utils/common.js", "content-yahoo.js"],
-      "run_at": "document_end"
+      "js": ["src/utils/common.js", "content-yahoo.js"],
+      "run_at": "document_idle"
     }
   ],
   
@@ -66,5 +66,19 @@
     "128": "icons/icon128.png"
   },
   
-  "options_page": "options.html"
+  "options_page": "options.html",
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*.png", "styles.css"],
+      "matches": [
+        "https://mail.google.com/*",
+        "https://outlook.live.com/*",
+        "https://outlook.office365.com/*",
+        "https://outlook.office.com/*",
+        "https://mail.yahoo.com/*",
+        "https://*.mail.yahoo.com/*"
+      ]
+    }
+  ]
 }
