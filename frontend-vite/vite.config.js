@@ -9,38 +9,77 @@ export default defineConfig({
     {
       name: "copy-extension-files",
       closeBundle() {
-        // Create icons directory if it doesn't exist
-        if (!existsSync("dist/icons")) {
-          mkdirSync("dist/icons", { recursive: true });
-        }
+        console.log("Copying extension files...");
 
-        // Copy manifest from src or public
+        // Create necessary directories
+        const dirs = ["dist/icons", "dist/utils"];
+        dirs.forEach(dir => {
+          if (!existsSync(dir)) {
+            mkdirSync(dir, { recursive: true });
+            console.log(`Created ${dir} directory`);
+          }
+        });
+
+        // Copy manifest
         if (existsSync("src/manifest.json")) {
           copyFileSync("src/manifest.json", "dist/manifest.json");
-        } else if (existsSync("public/manifest.json")) {
-          copyFileSync("public/manifest.json", "dist/manifest.json");
+          console.log("✓ Copied manifest.json");
         }
 
-        // Copy icons from src/icons to dist/icons
+        // Copy all icons
         if (existsSync("src/icons")) {
           const iconFiles = readdirSync("src/icons");
           iconFiles.forEach((file) => {
             copyFileSync(`src/icons/${file}`, `dist/icons/${file}`);
+            console.log(`✓ Copied icon: ${file}`);
           });
         }
 
-        // Copy options.html from src to dist
+        // Copy options.html
         if (existsSync("src/options.html")) {
           copyFileSync("src/options.html", "dist/options.html");
+          console.log("✓ Copied options.html");
         }
 
-        // Copy any background or content scripts
-        const scriptFiles = ["background.js", "content.js"];
-        scriptFiles.forEach((file) => {
-          if (existsSync(`src/${file}`)) {
-            copyFileSync(`src/${file}`, `dist/${file}`);
+        // Copy popup.html if it exists
+        if (existsSync("src/popup.html")) {
+          copyFileSync("src/popup.html", "dist/popup.html");
+          console.log("✓ Copied popup.html");
+        }
+
+        // Copy background service worker
+        if (existsSync("src/background.js")) {
+          copyFileSync("src/background.js", "dist/background.js");
+          console.log("✓ Copied background.js");
+        }
+
+        // Copy content scripts
+        const contentScripts = [
+          "content-gmail.js",
+          "content-outlook.js", 
+          "content-yahoo.js"
+        ];
+        contentScripts.forEach((script) => {
+          if (existsSync(`src/${script}`)) {
+            copyFileSync(`src/${script}`, `dist/${script}`);
+            console.log(`✓ Copied ${script}`);
+          } else {
+            console.log(`⚠ Missing: ${script}`);
           }
         });
+
+        // Copy utils directory
+        if (existsSync("src/utils")) {
+          const utilFiles = readdirSync("src/utils");
+          utilFiles.forEach((file) => {
+            copyFileSync(`src/utils/${file}`, `dist/utils/${file}`);
+            console.log(`✓ Copied utils/${file}`);
+          });
+        } else {
+          console.log("⚠ Missing: src/utils directory");
+        }
+
+        console.log("✅ All extension files copied!");
       },
     },
   ],

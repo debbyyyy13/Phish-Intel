@@ -26,11 +26,11 @@
     "service_worker": "background.js"
   },
   
-  "content_scripts": [
+"content_scripts": [
     {
       "matches": ["https://mail.google.com/*"],
-      "js": ["src/utils/common.js", "content-gmail.js"],
-      "run_at": "document_idle"
+      "js": ["utils/common.js", "content-gmail.js"],
+      "run_at": "document_end"
     },
     {
       "matches": [
@@ -38,16 +38,16 @@
         "https://outlook.office365.com/*",
         "https://outlook.office.com/*"
       ],
-      "js": ["src/utils/common.js", "content-outlook.js"],
-      "run_at": "document_idle"
+      "js": ["utils/common.js", "content-outlook.js"],
+      "run_at": "document_end"
     },
     {
       "matches": [
         "https://mail.yahoo.com/*",
         "https://*.mail.yahoo.com/*"
       ],
-      "js": ["src/utils/common.js", "content-yahoo.js"],
-      "run_at": "document_idle"
+      "js": ["utils/common.js", "content-yahoo.js"],
+      "run_at": "document_end"
     }
   ],
   
@@ -70,7 +70,7 @@
   
   "web_accessible_resources": [
     {
-      "resources": ["icons/*.png", "styles.css"],
+      "resources": ["icons/*.png"],
       "matches": [
         "https://mail.google.com/*",
         "https://outlook.live.com/*",
