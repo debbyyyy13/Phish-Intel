@@ -1,4 +1,4 @@
-// content-gmail.js - Enhanced Gmail monitoring with robust error handling
+// content-gmail.js - Enhanced Gmail monitoring with robust error handling and optimized timing
 
 (function() {
   'use strict';
@@ -76,29 +76,52 @@
 
     async waitForInterface() {
       return new Promise((resolve) => {
+        let checkCount = 0;
+        const maxChecks = 60; // 60 seconds total
+        
         const checkGmail = setInterval(() => {
+          checkCount++;
+          
           if (!this.isActive) {
             clearInterval(checkGmail);
+            console.log('[PhishGuard] Monitor deactivated during interface check');
             resolve();
             return;
           }
 
+          // More comprehensive Gmail interface detection
           const main = document.querySelector('[role="main"]');
           const inbox = document.querySelector('[aria-label*="Inbox"]') || 
-                       document.querySelector('[href*="inbox"]');
+                       document.querySelector('[href*="inbox"]') ||
+                       document.querySelector('.aim'); // Gmail inbox container
           
-          if (main && inbox) {
+          // Also check for email list container
+          const emailList = document.querySelector('table.F') || // Gmail email table
+                           document.querySelector('[gh="tl"]'); // Gmail thread list
+          
+          // Check if document is fully loaded
+          const isLoaded = document.readyState === 'complete' || 
+                          document.readyState === 'interactive';
+          
+          console.log(`[PhishGuard] Interface check ${checkCount}/${maxChecks}:`, {
+            main: !!main,
+            inbox: !!inbox,
+            emailList: !!emailList,
+            readyState: document.readyState
+          });
+          
+          // Consider Gmail loaded if we have main area and either inbox or email list
+          if (isLoaded && main && (inbox || emailList)) {
             clearInterval(checkGmail);
-            console.log('[PhishGuard] Gmail interface detected');
+            console.log('[PhishGuard] Gmail interface detected successfully');
+            resolve();
+          } else if (checkCount >= maxChecks) {
+            clearInterval(checkGmail);
+            console.warn('[PhishGuard] Gmail interface detection timeout after 60 seconds');
+            console.warn('[PhishGuard] Proceeding anyway - some features may not work');
             resolve();
           }
-        }, 1000);
-
-        setTimeout(() => {
-          clearInterval(checkGmail);
-          console.warn('[PhishGuard] Gmail interface detection timeout');
-          resolve();
-        }, 30000);
+        }, 1000); // Check every second instead of every 100ms to reduce load
       });
     }
 
@@ -110,35 +133,43 @@
 
       console.log('[PhishGuard] Starting Gmail monitoring');
       
-      // Monitor inbox for new emails
-      this.observer = new MutationObserver(() => {
-        if (this.isActive && isExtensionContextValid()) {
-          this.checkForNewEmails();
-        }
-      });
-
-      const mainContent = document.querySelector('[role="main"]');
-      if (mainContent) {
-        this.observer.observe(mainContent, {
-          childList: true,
-          subtree: true
+      // Wait a bit before starting to ensure Gmail is stable
+      setTimeout(() => {
+        // Monitor inbox for new emails
+        this.observer = new MutationObserver(() => {
+          if (this.isActive && isExtensionContextValid()) {
+            this.checkForNewEmails();
+          }
         });
-      }
 
-      // Initial scan
-      this.checkForNewEmails();
-      
-      // Monitor email viewing
-      this.monitorEmailView();
+        const mainContent = document.querySelector('[role="main"]');
+        if (mainContent) {
+          this.observer.observe(mainContent, {
+            childList: true,
+            subtree: true
+          });
+          console.log('[PhishGuard] Observer attached to main content');
+        } else {
+          console.warn('[PhishGuard] Main content not found for observer');
+        }
 
-      // Setup keyboard shortcuts
-      this.setupKeyboardShortcuts();
+        // Initial scan with slight delay
+        setTimeout(() => this.checkForNewEmails(), 1000);
+        
+        // Monitor email viewing
+        this.monitorEmailView();
+
+        // Setup keyboard shortcuts
+        this.setupKeyboardShortcuts();
+      }, 500);
     }
 
     checkForNewEmails() {
       if (!isExtensionContextValid()) return;
 
       const emailRows = document.querySelectorAll('tr.zA:not([data-phishguard-processed])');
+      
+      console.log(`[PhishGuard] Found ${emailRows.length} unprocessed emails`);
       
       emailRows.forEach(row => {
         const emailId = this.getEmailId(row);
@@ -249,7 +280,7 @@
         if (settings.autoQuarantine && result.confidence_score > settings.confidenceThreshold) {
           setTimeout(async () => {
             await this.moveToQuarantine(emailData, row);
-          }, 500);
+          }, 1000); // Increased from 500ms to 1000ms for stability
         }
       } else if (settings.showSafeIndicators) {
         row.classList.add('phishguard-safe');
@@ -283,7 +314,8 @@
         
         const emailRow = e.target.closest('tr.zA');
         if (emailRow) {
-          setTimeout(() => this.scanOpenEmail(), 500);
+          // Increased delay to ensure email is fully loaded
+          setTimeout(() => this.scanOpenEmail(), 1000);
         }
       });
 
@@ -295,7 +327,8 @@
         if (url !== lastUrl) {
           lastUrl = url;
           if (url.includes('/mail/u/')) {
-            setTimeout(() => this.scanOpenEmail(), 800);
+            // Increased delay for URL-based navigation
+            setTimeout(() => this.scanOpenEmail(), 1500);
           }
         }
       }).observe(document, { subtree: true, childList: true });
@@ -310,7 +343,10 @@
       const emailView = document.querySelector('[role="main"] [data-message-id]') ||
                        document.querySelector('.adn.ads');
       
-      if (!emailView) return;
+      if (!emailView) {
+        console.log('[PhishGuard] Email view not found yet');
+        return;
+      }
 
       const emailData = this.extractFullEmailData(emailView);
       if (!emailData) return;
@@ -399,7 +435,7 @@
 
         if (row) {
           row.click();
-          await this.sleep(300);
+          await this.sleep(500); // Increased from 300ms
         }
 
         if (spamButton && !spamButton.disabled) {
@@ -556,7 +592,7 @@
   // Initialize Gmail monitor with retry mechanism
   let gmailMonitor = null;
   let initAttempts = 0;
-  const maxAttempts = 10;
+  const maxAttempts = 15; // Increased from 10
 
   function waitForBaseClass() {
     return new Promise((resolve, reject) => {
@@ -571,7 +607,7 @@
           clearInterval(checkInterval);
           reject(new Error('EmailMonitorBase not loaded after ' + maxAttempts + ' attempts'));
         }
-      }, 100);
+      }, 200); // Increased from 100ms to reduce CPU load
     });
   }
 
@@ -610,10 +646,17 @@
     }
   });
 
-  // Start initialization
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeGmailMonitor);
-  } else {
-    initializeGmailMonitor();
+  // Start initialization with delayed retry logic
+  function startInitialization() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initializeGmailMonitor, 500); // Wait 500ms after DOM ready
+      });
+    } else {
+      // Document already loaded, wait a bit to ensure Gmail scripts are loaded
+      setTimeout(initializeGmailMonitor, 1000);
+    }
   }
+
+  startInitialization();
 })();
